@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+    <data>
+        <variable
+            name="cryptodata"
+            type="com.icanerdogan.retrofitkotlin.model.Crypto" />
+    </data>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textViewCryptoName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:hint="Crypto Name"
+            android:padding="5dp"
+            android:text="@{cryptodata.cryptoName}"
+            android:textColor="@color/black"
+            android:textSize="40sp">
+        </TextView>
+
+
+        <TextView
+            android:id="@+id/textViewCryptoPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
+            android:hint="Crypto Price"
+            android:padding="5dp"
+            android:text="@{cryptodata.formatPrice()}"
+            android:textColor="@color/black"
+            android:textSize="25sp">
+        </TextView>
+
+    </LinearLayout>
+</layout>
