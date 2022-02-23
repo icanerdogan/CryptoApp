@@ -10,19 +10,20 @@ import com.icanerdogan.retrofitkotlin.adapter.RecyclerViewAdapter
 import com.icanerdogan.retrofitkotlin.databinding.ActivityMainBinding
 import com.icanerdogan.retrofitkotlin.model.Crypto
 import com.icanerdogan.retrofitkotlin.service.CryptoAPI
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
+import kotlinx.coroutines.*
+import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity(), RecyclerViewAdapter.Listener {
     private val BASE_URL = "https://rest.coinapi.io/v1/"
     private var cryptoModels: ArrayList<Crypto>? = null
     private var recyclerViewAdapter: RecyclerViewAdapter? = null
-
+    private var job: Job? = null
     private lateinit var binding: ActivityMainBinding
 
+    val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+        println(throwable.localizedMessage)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -40,7 +41,27 @@ class MainActivity : AppCompatActivity(), RecyclerViewAdapter.Listener {
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+            .create(CryptoAPI::class.java)
 
+        // COROUTINES SONRASI 
+        job = CoroutineScope(Dispatchers.IO).launch {
+            val response = retrofit.getAllData()
+
+            // YUKARI DA OLUŞTURUDUĞUMUZ  HANDLER'I + İLE EKLİYORUZ!
+            withContext(Dispatchers.Main + exceptionHandler) {
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        cryptoModels = ArrayList(it)
+                        cryptoModels?.let {
+                            recyclerViewAdapter = RecyclerViewAdapter(it, this@MainActivity)
+                            binding.recyclerView.adapter = recyclerViewAdapter
+                        }
+                    }
+                }
+            }
+        }
+        // COROUTINES ÖNCESİ
+        /*
         val service = retrofit.create(CryptoAPI::class.java)
         val call = service.getAllData()
 
@@ -64,10 +85,16 @@ class MainActivity : AppCompatActivity(), RecyclerViewAdapter.Listener {
             }
 
         })
+         */
 
     }
 
     override fun onItemClick(crypto: Crypto) {
         Toast.makeText(this, "Clicked: ${crypto.cryptoName}", Toast.LENGTH_LONG).show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        job?.cancel()
     }
 }
